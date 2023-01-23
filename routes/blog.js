@@ -12,7 +12,6 @@ router.get("/posts", async function (request, response) {
         SELECT posts.*, authors.name AS author_name FROM posts
         INNER JOIN authors ON posts.author_id = authors.id`
     const [posts] = await db.query(query)
-    console.log(posts)
     response.render("posts-list", { posts: posts })
 })
 
@@ -30,6 +29,21 @@ router.post("/posts", async function (request, response) {
     ]
     await db.query("INSERT INTO posts (title, summary, body, author_id) VALUES (?)", [data])
     response.redirect("/posts")
+})
+
+// Post's detail router
+router.get("/posts/:id", async function (request, response) {
+    const query = `
+        SELECT posts.*, authors.name AS author_name, authors.email AS author_email FROM posts
+        INNER JOIN authors ON posts.author_id = authors.id
+        WHERE posts.id = ?
+    `
+    const [posts] = await db.query(query, [request.params.id])
+
+    if (!posts || posts.length === 0) {
+        return response.status(404).render("404")
+    }
+    response.render("post-detail", { posts: posts[0] })
 })
 
 module.exports = router
