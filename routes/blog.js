@@ -31,7 +31,7 @@ router.post("/posts", async function (request, response) {
     response.redirect("/posts")
 })
 
-// Post's detail router
+// Post detail dynamic route
 router.get("/posts/:id", async function (request, response) {
     const query = `
         SELECT posts.*, authors.name AS author_name, authors.email AS author_email FROM posts
@@ -39,11 +39,25 @@ router.get("/posts/:id", async function (request, response) {
         WHERE posts.id = ?
     `
     const [posts] = await db.query(query, [request.params.id])
+    // request.params.id received as request parameters
 
     if (!posts || posts.length === 0) {
         return response.status(404).render("404")
     }
-    response.render("post-detail", { posts: posts[0] })
+
+    // Modify "posts" array's date toISOString() & add more keys with date formatted data to the array
+    const postData = {
+        ...posts[0],    // Received from line # 41 as an array
+        date: posts[0].date.toISOString(),
+        humanReadableDate: posts[0].date.toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        })
+    }
+    
+    response.render("post-detail", { post: postData })
 })
 
 module.exports = router
