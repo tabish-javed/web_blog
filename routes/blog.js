@@ -80,7 +80,7 @@ router.get("/posts/:id/edit", async function (request, response) {
 router.post("/posts/:id/edit", async function (request, response) {
     const query = `
         UPDATE posts SET title = ?, summary = ?, body = ?
-        WHERE id = ?
+        WHERE posts.id = ?
     `
     const parameters = [
         request.body.title,
@@ -89,6 +89,15 @@ router.post("/posts/:id/edit", async function (request, response) {
         request.params.id
     ]
     await db.query(query, parameters)
+    response.redirect("/posts")
+})
+
+// Dynamic route for deleting a post data inside posts DB
+router.post("/posts/:id/delete", async function (request, response) {
+    const query = `
+        DELETE FROM posts WHERE posts.id = ?
+    `
+    await db.query(query, [request.params.id])
     response.redirect("/posts")
 })
 
