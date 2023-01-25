@@ -7,6 +7,7 @@ router.get("/", function (request, response) {
     response.redirect("/posts")
 })
 
+// Route to list posts
 router.get("/posts", async function (request, response) {
     const query = `
         SELECT posts.*, authors.name AS author_name FROM posts
@@ -15,11 +16,13 @@ router.get("/posts", async function (request, response) {
     response.render("posts-list", { posts: posts })
 })
 
+// Route to display create-post.ejs view and send list of authors to the page
 router.get("/new-post", async function (request, response) {
     const [authors] = await db.query("SELECT * FROM authors")
     response.render("create-post", { authors: authors })
 })
 
+// Route for sending post data to server and saving to posts DB
 router.post("/posts", async function (request, response) {
     const data = [
         request.body.title,
@@ -31,7 +34,7 @@ router.post("/posts", async function (request, response) {
     response.redirect("/posts")
 })
 
-// Post detail dynamic route
+// Dynamic route to display post detail
 router.get("/posts/:id", async function (request, response) {
     const query = `
         SELECT posts.*, authors.name AS author_name, authors.email AS author_email FROM posts
@@ -56,8 +59,37 @@ router.get("/posts/:id", async function (request, response) {
             day: "numeric",
         })
     }
-    
+
     response.render("post-detail", { post: postData })
+})
+
+// Dynamic route for fetching post detail
+router.get("/posts/:id/edit", async function (request, response) {
+    const query = `
+    SELECT * FROM posts WHERE id = ?
+    `
+    const [posts] = await db.query(query, [request.params.id])
+
+    if (!posts || posts.length === 0) {
+        return response.status(404).render("404")
+    }
+    response.render("update-post", { post: posts[0] })
+})
+
+// Dynamic route for updating post data
+router.post("/posts/:id/edit", async function (request, response) {
+    const query = `
+        UPDATE posts SET title = ?, summary = ?, body = ?
+        WHERE id = ?
+    `
+    const parameters = [
+        request.body.title,
+        request.body.summary,
+        request.body.content,
+        request.params.id
+    ]
+    await db.query(query, parameters)
+    response.redirect("/posts")
 })
 
 module.exports = router
