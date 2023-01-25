@@ -11,7 +11,8 @@ router.get("/", function (request, response) {
 router.get("/posts", async function (request, response) {
     const query = `
         SELECT posts.*, authors.name AS author_name FROM posts
-        INNER JOIN authors ON posts.author_id = authors.id`
+        INNER JOIN authors ON posts.author_id = authors.id
+        ORDER BY posts.date DESC`
     const [posts] = await db.query(query)
     response.render("posts-list", { posts: posts })
 })
